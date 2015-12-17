@@ -1,0 +1,161 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Here Maps - OpenLayers 3 - example</title>
+    <script src="http://openlayers.org/en/v3.10.1/build/ol.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <script src="js/shp.js"></script>
+    <link rel="stylesheet" href="http://openlayers.org/en/v3.10.1/css/ol.css" type="text/css">
+    <style>
+      #map_body {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body id="map_body">
+    
+    <script>
+    var config = {
+        'here_maps': {
+            'url': 'http://{1-4}.base.maps.cit.api.here.com/',
+            'app_id': 'DemoAppId01082013GAL',
+            'app_code': 'AJKnXv84fjrb0KIHawS0Tg',
+            'layer': 'normal.day',
+            'type': 'maptile'
+        }
+      };
+
+      var layers = [];
+      // Here maps layer
+      layers.push(
+        new ol.layer.Tile({
+          visible: true,
+          preload: Infinity,
+          source: new ol.source.XYZ({
+                      crossOrigin: null,
+                      url: config['here_maps']['url'] + 'maptile/2.1/' + config['here_maps']['type'] +
+                      '/newest/' + config['here_maps']['layer'] +
+                      '/{z}/{x}/{y}/256/png8?app_id=' + config['here_maps']['app_id'] +
+                      '&app_code=' + config['here_maps']['app_code'] + '&lg=ENG&ppi=320'
+                  })
+      }));
+
+
+
+
+
+      var image = new ol.style.Circle({
+        radius: 5,
+        fill: null,
+        stroke: new ol.style.Stroke({color: 'red', width: 1})
+      });
+
+      var styles = {
+        'Point': [new ol.style.Style({
+          image: image
+        })],
+        'LineString': [new ol.style.Style({
+          stroke: new ol.style.Stroke({
+            color: 'green',
+            width: 1
+          })
+        })],
+        'MultiLineString': [new ol.style.Style({
+          stroke: new ol.style.Stroke({
+            color: 'green',
+            width: 1
+          })
+        })],
+        'MultiPoint': [new ol.style.Style({
+          image: image
+        })],
+        'MultiPolygon': [new ol.style.Style({
+          stroke: new ol.style.Stroke({
+            color: 'yellow',
+            width: 1
+          }),
+          fill: new ol.style.Fill({
+            color: 'rgba(255, 255, 0, 0.1)'
+          })
+        })],
+        'Polygon': [new ol.style.Style({
+          stroke: new ol.style.Stroke({
+            color: 'blue',
+            lineDash: [4],
+            width: 3
+          }),
+          fill: new ol.style.Fill({
+            color: 'rgba(0, 0, 255, 0.1)'
+          })
+        })],
+        'GeometryCollection': [new ol.style.Style({
+          stroke: new ol.style.Stroke({
+            color: 'magenta',
+            width: 2
+          }),
+          fill: new ol.style.Fill({
+            color: 'magenta'
+          }),
+          image: new ol.style.Circle({
+            radius: 10,
+            fill: null,
+            stroke: new ol.style.Stroke({
+              color: 'magenta'
+            })
+          })
+        })],
+        'Circle': [new ol.style.Style({
+          stroke: new ol.style.Stroke({
+            color: 'red',
+            width: 2
+          }),
+          fill: new ol.style.Fill({
+            color: 'rgba(255,0,0,0.2)'
+          })
+        })]
+      };
+
+      var styleFunction = function(feature, resolution) {
+        return styles[feature.getGeometry().getType()];
+      };
+
+      var base = 'shapefiles/Paris_France.zip';
+      shp(base).then(function(geojsonObject){
+
+        var vectorSource = new ol.source.Vector({
+          features: (new ol.format.GeoJSON()).readFeatures(geojsonObject,{
+            featureProjection: 'EPSG:3857'
+          })
+        });
+
+        var vectorLayer = new ol.layer.Vector({
+          source: vectorSource,
+          style: styleFunction
+        });
+        layers.push(vectorLayer);
+
+
+        // Coordinates [lon, lat]
+        var center = [2.33, 48.85],
+          z = 12;
+
+        var map = new ol.Map({
+          layers: layers,
+          renderer: 'canvas',
+          target: 'map_body',
+          view: new ol.View({
+              center: ol.proj.transform(center, 'EPSG:4326', 'EPSG:3857'),
+              zoom: z
+          })
+        });
+
+      });
+
+
+
+    </script>
+  </body>
+</html>
