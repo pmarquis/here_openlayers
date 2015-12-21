@@ -18,8 +18,8 @@
     </style>
   </head>
   <body>
-    .shp <input id="shp" type="file" name=".shp" />
-    .dbf <input id="dbf" type="file" name=".dbf" />
+    <input id="input-files" type="file" name="files[]" multiple/>
+    <!-- .dbf <input id="dbf" type="file" name=".dbf" /> -->
     <div id="map">
     </div>
     
@@ -71,27 +71,32 @@ var map = new ol.Map({
 
 
 var onchange = function(e) {
-  var shpFile = document.getElementById('shp').files[0];
-  var dbfFile = document.getElementById('dbf').files[0];
+  var files = document.getElementById('input-files').files;
+  var shpFile = null, dbfFile = null;
+  for(i=0; i<files.length, file=files[i]; i++){
+    var ext = file.name.substr(file.name.lastIndexOf('.') + 1);
+    if(ext == "dbf"){
+      dbfFile = file;
+    }
+    if(ext == "shp"){
+      shpFile = file;
+    }
+  }
   if (shpFile) {
-      var opts = { shp: shpFile };
-      if (dbfFile) {
-          opts['dbf'] = dbfFile;
-      }
-      shapefile = new Shapefile(opts, function(data){
-          var features = (new ol.format.GeoJSON()).readFeatures(data.geojson, {
-            featureProjection: 'EPSG:3857'
-          });
-          vectorSource.addFeatures(features);
+    var opts = { shp: shpFile };
+    if (dbfFile) {
+        opts['dbf'] = dbfFile;
+    }
+    shapefile = new Shapefile(opts, function(data){
+      var features = (new ol.format.GeoJSON()).readFeatures(data.geojson, {
+        featureProjection: 'EPSG:3857'
       });
+      vectorSource.addFeatures(features);
+    });
   }
 }
 
-document.body.onload = function(){
-  document.getElementById('shp').addEventListener('change', onchange, false);
-  document.getElementById('dbf').addEventListener('change', onchange, false);
-}
-
+document.getElementById('input-files').addEventListener('change', onchange, false);
 
     </script>
       
